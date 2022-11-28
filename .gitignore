@@ -1,0 +1,4 @@
+/target
+
+# Ignore application save data.
+slots_data.toml
