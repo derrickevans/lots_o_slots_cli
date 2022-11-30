@@ -1,11 +1,38 @@
+use crossterm::{
+    cursor,
+    style::{self, Stylize},
+    terminal, ExecutableCommand, QueueableCommand, Result,
+};
 use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
+use std::io::{stdout, Write};
 
 const THORN_SYMBOL: char = '\u{00FE}';
 const SLOTS_ACCOUNT_FILE: &str = "slots_data.toml";
+
+fn crossterm_example() -> Result<()> {
+    let mut stdout = stdout();
+    stdout.execute(terminal::Clear(terminal::ClearType::All))?;
+
+    /*for y in 0..40 {
+        for x in 0..150 {
+            if (y == 0 || y == 40 - 1) || (x == 0 || x == 150 - 1) {
+                // in this loop we are more efficient by not flushing the buffer.
+                stdout
+                    .queue(cursor::MoveTo(x, y))?
+                    .queue(style::PrintStyledContent("█".magenta()))?;
+            }
+        }
+    }*/
+
+    stdout
+        .queue(cursor::MoveTo(0, 0))?
+        .queue(style::PrintStyledContent("█".magenta()))?;
+    Ok(())
+}
 
 fn display_title_greeting() {
     println!("Welcome to Lots o\' Slots CLI!");
@@ -184,6 +211,11 @@ fn main() {
     let mut account = match File::open(SLOTS_ACCOUNT_FILE) {
         Ok(_) => load_account(),
         Err(_) => create_account(prompt_user_for_name().trim()),
+    };
+
+    match crossterm_example() {
+        Ok(_) => println!(),
+        Err(msg) => println!("crossterm::error: {}", msg),
     };
 
     println!("\nWelcome, {}", account.account_name);

@@ -10,6 +10,7 @@ name = "los"
 path = "src/main.rs"
 
 [dependencies]
+crossterm = "0.25.0"
 rand = "0.8.4"
 serde = { version = "1.0.147", features = ["derive"]}
 toml = "0.5.9"
