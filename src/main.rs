@@ -3,12 +3,14 @@ use crossterm::{
     style::{self, Stylize},
     terminal, ExecutableCommand, QueueableCommand, Result,
 };
-use rand::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 use std::io::{stdout, Write};
+
+mod slot_machine;
+use crate::slot_machine::{reel_stop_value, SlotMachine, WinningType};
 
 const THORN_SYMBOL: char = '\u{00FE}';
 const SLOTS_ACCOUNT_FILE: &str = "slots_data.toml";
@@ -86,14 +88,6 @@ fn prompt_user_for_command_input() -> String {
     input
 }
 
-enum WinningType {
-    Jackpot,
-    Big,
-    Medium,
-    Small,
-    Loss,
-}
-
 #[derive(Serialize, Deserialize, Debug)]
 struct Account {
     account_name: String,
@@ -146,18 +140,6 @@ fn sufficient_funds(account: &Account, value: u8) -> bool {
     }
 }
 
-// Generate random number to be the index into the reel array containing the values.
-fn reel_stop_value() -> u32 {
-    let reel = [
-        0, 8, 5, 2, 6, 9, 0, 1, 4, 3, 1, 2, 5, 9, 1, 4, 3, 0, 7, 6, 2, 5, 3, 4, 1, 8, 3, 6, 0, 2,
-    ];
-
-    // Get random number for the index
-    let mut rng = thread_rng();
-    let index = rng.gen_range(0..30);
-    reel[index]
-}
-
 fn play_round(wager_value: u8) -> (bool, u32) {
     let reel_1_stop_value = reel_stop_value();
     let reel_2_stop_value = reel_stop_value();
@@ -198,6 +180,8 @@ fn play_round(wager_value: u8) -> (bool, u32) {
 }
 
 fn main() {
+    let mut slot_machine = SlotMachine::new();
+
     // Display greeting and rules.
     display_title_greeting();
     display_rules();
