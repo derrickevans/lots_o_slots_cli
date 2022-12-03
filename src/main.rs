@@ -109,10 +109,6 @@ impl Account {
     }
 }
 
-fn create_account(name: &str) -> Account {
-    Account::new(name)
-}
-
 fn update_account(account: &mut Account, game_result: (bool, u32)) {
     if game_result.0 {
         account.account_balance += game_result.1;
@@ -210,7 +206,7 @@ fn main() {
     // Check to see if there is a previous save file, if not, prompt user for name and create new account.
     let mut account = match File::open(SLOTS_ACCOUNT_FILE) {
         Ok(_) => load_account(),
-        Err(_) => create_account(prompt_user_for_name().trim()),
+        Err(_) => Account::new(&prompt_user_for_name().trim()),
     };
 
     match crossterm_example() {
