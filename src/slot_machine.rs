@@ -28,7 +28,7 @@ fn generate_uuid() -> u32 {
     1000
 }
 
-pub enum WinningType {
+enum WinningType {
     Jackpot,
     Big,
     Medium,
@@ -37,7 +37,7 @@ pub enum WinningType {
 }
 
 // Generate random number to be the index into the reel array containing the values.
-pub fn reel_stop_value() -> u32 {
+fn reel_stop_value() -> u32 {
     let reel = [
         0, 8, 5, 2, 6, 9, 0, 1, 4, 3, 1, 2, 5, 9, 1, 4, 3, 0, 7, 6, 2, 5, 3, 4, 1, 8, 3, 6, 0, 2,
     ];
@@ -46,4 +46,43 @@ pub fn reel_stop_value() -> u32 {
     let mut rng = thread_rng();
     let index = rng.gen_range(0..30);
     reel[index]
+}
+
+pub fn play_round(wager_value: u8) -> (bool, u32) {
+    let reel_1_stop_value = reel_stop_value();
+    let reel_2_stop_value = reel_stop_value();
+    let reel_3_stop_vlue = reel_stop_value();
+
+    println!(
+        "{} | {} | {}",
+        reel_1_stop_value, reel_2_stop_value, reel_3_stop_vlue
+    );
+
+    let mut winning_type: WinningType = WinningType::Loss;
+    if reel_1_stop_value == 7 {
+        winning_type = WinningType::Jackpot;
+    } else if reel_1_stop_value == 8 || reel_1_stop_value == 9 {
+        winning_type = WinningType::Big;
+    } else if reel_1_stop_value == 4 || reel_1_stop_value == 5 || reel_1_stop_value == 6 {
+        winning_type = WinningType::Medium;
+    } else if reel_1_stop_value == 0
+        || reel_1_stop_value == 1
+        || reel_1_stop_value == 2
+        || reel_1_stop_value == 3
+    {
+        winning_type = WinningType::Small;
+    }
+
+    let mut winner: bool = false;
+    if reel_1_stop_value == reel_2_stop_value && reel_2_stop_value == reel_3_stop_vlue {
+        match winning_type {
+            WinningType::Jackpot => winner = true,
+            WinningType::Big => winner = true,
+            WinningType::Medium => winner = true,
+            WinningType::Small => winner = true,
+            WinningType::Loss => winner = false,
+        }
+    }
+
+    (winner, wager_value as u32)
 }

@@ -3,20 +3,18 @@ use crossterm::{
     style::{self, Stylize},
     terminal, ExecutableCommand, QueueableCommand, Result,
 };
-use serde::{Deserialize, Serialize};
 use std::fs::File;
 use std::io;
-use std::io::prelude::*;
-use std::io::{stdout, Write};
 
+mod account;
+mod los;
 mod slot_machine;
-use crate::slot_machine::{reel_stop_value, SlotMachine, WinningType};
-
-const THORN_SYMBOL: char = '\u{00FE}';
-const SLOTS_ACCOUNT_FILE: &str = "slots_data.toml";
+use crate::account::*;
+use crate::los::*;
+use crate::slot_machine::*;
 
 fn crossterm_example() -> Result<()> {
-    let mut stdout = stdout();
+    let mut stdout = io::stdout();
     stdout.execute(terminal::Clear(terminal::ClearType::All))?;
 
     /*for y in 0..40 {
@@ -36,151 +34,8 @@ fn crossterm_example() -> Result<()> {
     Ok(())
 }
 
-fn display_title_greeting() {
-    println!("Welcome to Lots o\' Slots CLI!");
-}
-
-fn display_rules() {
-    println!("\n--- Rules ---");
-    println!(
-        "The currency in Lots o\' Slots CLI is the Thorn ({}).",
-        THORN_SYMBOL
-    );
-    println!("The player starts with 100{}.", THORN_SYMBOL);
-    println!(
-        "To place a bet enter 0-9. 0 being a max bet of 10{}",
-        THORN_SYMBOL
-    );
-}
-
-fn display_commands() {
-    println!("\n--- Commands ---");
-    println!("1 \t-> Bet of 1{}", THORN_SYMBOL);
-    println!("2 \t-> Bet of 2{}", THORN_SYMBOL);
-    println!("3 \t-> Bet of 3{}", THORN_SYMBOL);
-    println!("4 \t-> Bet of 4{}", THORN_SYMBOL);
-    println!("5 \t-> Bet of 5{}", THORN_SYMBOL);
-    println!("6 \t-> Bet of 6{}", THORN_SYMBOL);
-    println!("7 \t-> Bet of 7{}", THORN_SYMBOL);
-    println!("8 \t-> Bet of 8{}", THORN_SYMBOL);
-    println!("9 \t-> Bet of 9{}", THORN_SYMBOL);
-    println!("0 \t-> Max bet of 10{}", THORN_SYMBOL);
-    println!("help \t-> Displays the commands.");
-    println!("rules \t-> Displays the rules.");
-    println!("quit \t-> Saves and closes the application.\n");
-}
-
-fn prompt_user_for_name() -> String {
-    println!("Enter your name:");
-    let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to get input for name.");
-    input
-}
-
-fn prompt_user_for_command_input() -> String {
-    println!("What would you like to do?");
-    let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to get command input.");
-    input
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct Account {
-    account_name: String,
-    account_balance: u32,
-}
-
-impl Account {
-    fn new(name: &str) -> Self {
-        Self {
-            account_name: String::from(name),
-            account_balance: 100,
-        }
-    }
-}
-
-fn update_account(account: &mut Account, game_result: (bool, u32)) {
-    if game_result.0 {
-        account.account_balance += game_result.1;
-    } else {
-        account.account_balance -= game_result.1;
-    }
-}
-
-fn save_account(account: &Account) {
-    // Serialize and write to file.
-    let serialized = toml::to_string(&account).unwrap();
-    let mut account_file = File::create(SLOTS_ACCOUNT_FILE).expect("Failed to create file.");
-    account_file
-        .write_all(serialized.as_bytes())
-        .expect("Failed to write all the bytes to the file.");
-    println!("You progess has been saved.");
-}
-
-fn load_account() -> Account {
-    // Read from file and deserialize.
-    let mut account_file = File::open(SLOTS_ACCOUNT_FILE).expect("Failed to open the file.");
-    let mut data = String::new();
-    let _serialized_data = account_file
-        .read_to_string(&mut data)
-        .expect("Failed to get data");
-    let account: Account = toml::from_str(data.as_str()).expect("Failed here too.");
-    account
-}
-
-fn sufficient_funds(account: &Account, value: u8) -> bool {
-    if account.account_balance < value as u32 {
-        false
-    } else {
-        true
-    }
-}
-
-fn play_round(wager_value: u8) -> (bool, u32) {
-    let reel_1_stop_value = reel_stop_value();
-    let reel_2_stop_value = reel_stop_value();
-    let reel_3_stop_vlue = reel_stop_value();
-
-    println!(
-        "{} | {} | {}",
-        reel_1_stop_value, reel_2_stop_value, reel_3_stop_vlue
-    );
-
-    let mut winning_type: WinningType = WinningType::Loss;
-    if reel_1_stop_value == 7 {
-        winning_type = WinningType::Jackpot;
-    } else if reel_1_stop_value == 8 || reel_1_stop_value == 9 {
-        winning_type = WinningType::Big;
-    } else if reel_1_stop_value == 4 || reel_1_stop_value == 5 || reel_1_stop_value == 6 {
-        winning_type = WinningType::Medium;
-    } else if reel_1_stop_value == 0
-        || reel_1_stop_value == 1
-        || reel_1_stop_value == 2
-        || reel_1_stop_value == 3
-    {
-        winning_type = WinningType::Small;
-    }
-
-    let mut winner: bool = false;
-    if reel_1_stop_value == reel_2_stop_value && reel_2_stop_value == reel_3_stop_vlue {
-        match winning_type {
-            WinningType::Jackpot => winner = true,
-            WinningType::Big => winner = true,
-            WinningType::Medium => winner = true,
-            WinningType::Small => winner = true,
-            WinningType::Loss => winner = false,
-        }
-    }
-
-    (winner, wager_value as u32)
-}
-
 fn main() {
-    let mut slot_machine = SlotMachine::new();
+    let _slot_machine = SlotMachine::new();
 
     // Display greeting and rules.
     display_title_greeting();
@@ -198,11 +53,11 @@ fn main() {
         Err(msg) => println!("crossterm::error: {}", msg),
     };
 
-    println!("\nWelcome, {}", account.account_name);
+    println!("\nWelcome, {}", account.get_account_name());
 
     loop {
         println!("\n{:?}", account);
-        if account.account_balance == 0 {
+        if account.get_account_balance() == 0 {
             println!(
                 "It looks like your balance is 0{}. You can edit {} to give yourself more money, but please note that account_balance is an unsigned 32 bit integer! Entering a value larger than an unsigned 32 bit integer can hold will cause unknown issues. I\'m too lazy to take five seconds to test it!",
                 THORN_SYMBOL, SLOTS_ACCOUNT_FILE
