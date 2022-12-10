@@ -17,6 +17,7 @@ pub fn display_rules() {
         "To place a bet enter 0-9. 0 being a max bet of 10{}",
         THORN_SYMBOL
     );
+    println!("Your last bet is saved and can be quick bet by pressing [Enter]");
 }
 
 pub fn display_commands() {
@@ -37,7 +38,7 @@ pub fn display_commands() {
 }
 
 pub fn prompt_user_for_name() -> String {
-    println!("Enter your name:");
+    println!("\nEnter your name:");
     let mut input = String::new();
     io::stdin()
         .read_line(&mut input)
@@ -46,7 +47,7 @@ pub fn prompt_user_for_name() -> String {
 }
 
 pub fn prompt_user_for_command_input() -> String {
-    println!("What would you like to do?");
+    println!("\nWhat would you like to do?");
     let mut input = String::new();
     io::stdin()
         .read_line(&mut input)
