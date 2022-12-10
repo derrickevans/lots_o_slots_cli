@@ -39,7 +39,7 @@ enum WinningType {
 // Generate random number to be the index into the reel array containing the values.
 fn reel_stop_value() -> u32 {
     let reel = [
-        0, 8, 5, 2, 6, 9, 0, 1, 4, 3, 1, 2, 5, 9, 1, 4, 3, 0, 7, 6, 2, 5, 3, 4, 1, 8, 3, 6, 0, 2,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5, 7,
     ];
 
     // Get random number for the index
